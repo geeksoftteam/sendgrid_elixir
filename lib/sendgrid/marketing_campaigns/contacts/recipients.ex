@@ -32,10 +32,15 @@ defmodule SendGrid.Contacts.Recipients do
 
     { :error, errors }
   end
-
   # Handles the result when it's valid.
-  defp handle_recipient_result({:ok, %{body: body}}) do
-    [recipient_id] = body["persisted_recipients"]
-    { :ok, recipient_id}
+  defp handle_recipient_result({:ok, %{body: %{"persisted_recipients" => [recipient_id]}}}) do
+    { :ok, recipient_id }
+  end
+  # Handles the result when there were no returned recipients (for example if it's an update which didn't change anything)
+  defp handle_recipient_result({:ok, %{body: %{"persisted_recipients" => []}}}) do
+    { :error, [ "No changes applied for recipient" ] }
+  end
+  defp handle_recipient_result({:ok, _}) do
+    { :error, [ "Unexpected error" ] }
   end
 end
