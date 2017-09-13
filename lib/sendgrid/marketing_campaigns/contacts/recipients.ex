@@ -16,12 +16,24 @@ defmodule SendGrid.Contacts.Recipients do
 
       {:ok, recipient_id} = add("test@example.com")
   """
-  @spec add(String.t, %{}) :: :ok | { :error, list(String.t) }
+  @spec add(String.t, %{}) :: { :ok, String.t } | { :error, list(String.t) }
   def add(email_address, custom_fields \\ %{}) do
     payload = Map.merge(%{ "email" => email_address }, custom_fields)
 
     SendGrid.post(@base_api_url, [payload])
     |> handle_recipient_result
+  end
+
+  @doc """
+  Allows you to perform a search on all of your Marketing Campaigns recipients
+
+      {:ok, recipients} = search(%{"first_name" => "test"})
+  """
+  @spec search(map) :: { :ok, list(map) } | { :error, list(String.t) }
+  def search(opts) do
+    query = URI.encode_query(opts)
+    SendGrid.get("#{@base_api_url}/search?#{query}")
+    |> handle_search_result
   end
 
   # Handles the result when errors are present.
@@ -43,4 +55,20 @@ defmodule SendGrid.Contacts.Recipients do
   defp handle_recipient_result({:ok, _}) do
     { :error, [ "Unexpected error" ] }
   end
+
+  defp handle_search_result({:ok, %{body: body = %{"error_count" => count }}}) when count > 0 do
+    errors =
+      body["errors"]
+      |> Enum.map(fn(error) -> error["message"] end)
+
+    { :error, errors }
+  end
+  # Handles the result when it's valid.
+  defp handle_search_result({:ok, %{body: %{"recipients" => recipients}}}) do
+    { :ok, recipients }
+  end
+  defp handle_search_result({:ok, _}) do
+    { :error, [ "Unexpected error" ] }
+  end
+
 end
