@@ -6,6 +6,8 @@ defmodule SendGrid.Contacts.Recipients do
   for more detail.
   """
 
+  require Logger
+
   @base_api_url "/v3/contactdb/recipients"
 
   @doc """
@@ -52,7 +54,8 @@ defmodule SendGrid.Contacts.Recipients do
   defp handle_recipient_result({:ok, %{body: %{"persisted_recipients" => []}}}) do
     { :error, [ "No changes applied for recipient" ] }
   end
-  defp handle_recipient_result({:ok, _}) do
+  defp handle_recipient_result(error) do
+    Logger.error "Unhandled response from SendGrid - #{inspect error}"
     { :error, [ "Unexpected error" ] }
   end
 
@@ -67,7 +70,8 @@ defmodule SendGrid.Contacts.Recipients do
   defp handle_search_result({:ok, %{body: %{"recipients" => recipients}}}) do
     { :ok, recipients }
   end
-  defp handle_search_result({:ok, _}) do
+  defp handle_search_result(error) do
+    Logger.error "Unhandled response from SendGrid - #{inspect error}"
     { :error, [ "Unexpected error" ] }
   end
 
