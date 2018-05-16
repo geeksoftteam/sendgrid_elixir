@@ -35,7 +35,7 @@ defmodule SendGrid.Contacts.Recipients do
       }
     ]
   """
-  @spec add_multiple([]) :: { :ok, [] } | { :ok, String.t } | { :error, list(String.t) }
+  @spec add_multiple([]) :: { :ok, [String.t] } | { :ok, String.t } | { :error, list(String.t) }
   def add_multiple(recipients) when is_list(recipients) do
     SendGrid.patch(@base_api_url, recipients)
     |> handle_recipient_result
