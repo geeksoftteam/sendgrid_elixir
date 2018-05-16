@@ -12,15 +12,15 @@ defmodule SendGrid.Contacts.Recipients do
 
   @doc """
   Adds a contact to the contacts list available in Marketing Campaigns. At a minimum, an email address must provided.
-  Additionaly, costom fields that have already been created can added as well.
+  Additionaly, custom fields that have already been created can added as well.
 
-      {:ok, recipient_id} = add("test@example.com", %{ "name" => "John Doe" })
+      {:ok, recipient_id} = add("test@example.com", %{"name" => "John Doe"})
 
       {:ok, recipient_id} = add("test@example.com")
   """
   @spec add(String.t, %{}) :: { :ok, String.t } | { :error, list(String.t) }
   def add(email_address, custom_fields \\ %{}) do
-    payload = Map.merge(%{ "email" => email_address }, custom_fields)
+    payload = Map.merge(%{"email" => email_address}, custom_fields)
 
     SendGrid.post(@base_api_url, [payload])
     |> handle_recipient_result
@@ -39,12 +39,12 @@ defmodule SendGrid.Contacts.Recipients do
   end
 
   # Handles the result when errors are present.
-  defp handle_recipient_result({:ok, %{body: body = %{"error_count" => count }}}) when count > 0 do
+  defp handle_recipient_result({:ok, %{body: body = %{"error_count" => count}}}) when count > 0 do
     errors =
       body["errors"]
-      |> Enum.map(fn(error) -> error["message"] end)
+      |> Enum.map(fn error -> error["message"] end)
 
-    { :error, errors }
+    {:error, errors}
   end
   # Handles the result when it's valid.
   defp handle_recipient_result({:ok, %{body: %{"persisted_recipients" => [recipient_id]}}}) do
@@ -59,6 +59,7 @@ defmodule SendGrid.Contacts.Recipients do
     { :error, [ "Unexpected error" ] }
   end
 
+  # Handles the result when it's valid.
   defp handle_search_result({:ok, %{body: body = %{"error_count" => count }}}) when count > 0 do
     errors =
       body["errors"]
@@ -66,7 +67,6 @@ defmodule SendGrid.Contacts.Recipients do
 
     { :error, errors }
   end
-  # Handles the result when it's valid.
   defp handle_search_result({:ok, %{body: %{"recipients" => recipients}}}) do
     { :ok, recipients }
   end
