@@ -63,6 +63,22 @@ defmodule SendGrid.Contacts.Lists do
   end
 
   @doc """
+  Adds a recipient to an email list.
+
+      :ok = add_recipient(123, "recipient_id")
+
+  """
+  @spec add_multiple_recipients(integer, [String.t()]) :: :ok | :error
+  def add_multiple_recipients(list_id, recipient_ids) when is_list(recipient_ids) do
+    url = @base_api_url <> "/#{list_id}/recipients"
+
+    case SendGrid.post(url, recipient_ids) do
+      {:ok, %{status_code: 201}} -> :ok
+      _ -> :error
+    end
+  end
+
+  @doc """
   Deletes a recipient from an email list.
 
       :ok = delete_recipient(123, "recipient_id")
