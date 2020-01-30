@@ -37,6 +37,24 @@ defmodule SendGrid.Contacts.Recipients do
   end
 
   @doc """
+  Adds or updates multiple recipients in contacts list.
+  Recipients param must be in format required by Sendgrid:
+    [
+      %{
+        "email" => "test@example.com",
+        "name"  => "John Doe",
+        etc...
+      }
+    ]
+  """
+  @spec add_multiple([]) :: {:ok, [String.t]} | {:ok, String.t} | {:error, list(String.t)}
+  def add_multiple(recipients) when is_list(recipients) do
+    with {:ok, response} <- SendGrid.patch(@base_api_url, recipients) do
+      handle_recipient_result(response)
+    end
+  end
+
+  @doc """
   Allows you to perform a search on all of your Marketing Campaigns recipients
 
       {:ok, recipients} = search(%{"first_name" => "test"})
@@ -55,9 +73,15 @@ defmodule SendGrid.Contacts.Recipients do
 
     {:error, errors}
   end
+
   # Handles the result when it's valid.
   defp handle_recipient_result(%{body: %{"persisted_recipients" => [recipient_id]}}) do
     {:ok, recipient_id}
+  end
+
+  # Handles the result when there are multiple persisted recipients.
+  defp handle_recipient_result(%{body: %{"persisted_recipients" => recipients}}) when is_list(recipients) and length(recipients) > 1 do
+    {:ok, recipients}
   end
 
   # Handles the result when there were no returned recipients (for example if it's an update which didn't change anything)
