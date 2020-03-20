@@ -149,8 +149,12 @@ defmodule SendGrid do
     Keyword.take(opts, [:query])
   end
 
-  defp parse_response({:ok, %{body: body, headers: headers, status: status}}) do
+  defp parse_response({:ok, %{body: body, headers: headers, status: status}}) when status in 200..299 do
     {:ok, %Response{body: body, headers: headers, status: status}}
+  end
+
+  defp parse_response({:ok, %{body: body, headers: headers, status: status}}) do
+    {:error, %Response{body: body, headers: headers, status: status}}
   end
 
   defp parse_response({:error, _} = error), do: error
